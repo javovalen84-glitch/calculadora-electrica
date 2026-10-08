@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#12181f">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-512.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Calculadora Eléctrica PRO JV</title>
+<style>
+  :root{
+    --bg:#101418; --panel:#171d24; --panel2:#1d242c; --line:#2a323c;
+    --copper:#c9793f; --copper-bright:#e29457; --ok:#4caf6d; --bad:#e2574c;
+    --text:#e9edf1; --muted:#8b96a3;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100%;
+  }
+  .top{
+    padding:22px clamp(16px,4vw,40px) 16px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#141a20,#101418);
+  }
+  .top h1{margin:0; font-size:1.3rem; letter-spacing:.2px; font-weight:600;}
+  .top p{margin:4px 0 0; color:var(--muted); font-size:.85rem;}
+  .wrap{max-width:820px; margin:0 auto; padding:20px clamp(14px,4vw,40px) 60px; display:grid; gap:18px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 18px 20px;}
+  .card h2{margin:0 0 14px; font-size:.78rem; text-transform:uppercase; letter-spacing:1.2px; color:var(--copper-bright); font-weight:700;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:520px){ .row{grid-template-columns:1fr;} }
+  label{display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px;}
+  select,input{
+    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    padding:11px 10px; border-radius:7px; font-size:1rem; font-family:inherit;
+  }
+  select:focus,input:focus{outline:2px solid var(--copper); outline-offset:1px;}
+  .field{margin-bottom:12px;}
+  .results{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:520px){ .results{grid-template-columns:1fr;} }
+  .r-item{
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .r-item .lbl{font-size:.76rem; color:var(--muted);}
+  .r-item .val{font-family:'SFMono-Regular',Consolas,'Courier New',monospace; font-size:1.02rem; font-weight:600; text-align:right;}
+  .r-item.wide{grid-column:1/-1;}
+  .estado{font-weight:700;}
+  .estado.ok{color:var(--ok);}
+  .estado.bad{color:var(--bad);}
+  .foot{color:var(--muted); font-size:.72rem; text-align:center; margin-top:4px; line-height:1.5;}
+  .divider{height:1px; background:var(--line); margin:4px 0 14px;}
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>⚡ Calculadora Eléctrica PRO JV</h1>
+    <p>Calibre de conductor, breaker, caída de tensión y transformador — según NEC</p>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>Datos de entrada</h2>
+      <div class="row">
+        <div class="field">
+          <label>Sistema</label>
+          <select id="sistema"><option value="Monofasico">Monofásico</option><option value="Trifasico">Trifásico</option></select>
+        </div>
+        <div class="field">
+          <label>Material del conductor</label>
+          <select id="material"><option value="Cobre">Cobre</option><option value="Aluminio">Aluminio</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Voltaje (V)</label>
+          <input type="number" id="voltaje" value="220">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Tipo de dato que voy a ingresar</label>
+          <select id="tipo">
+            <option value="corriente">Corriente (A)</option>
+            <option value="w">Potencia (W)</option>
+            <option value="kw">Potencia (kW)</option>
+            <option value="kva">Potencia (kVA)</option>
+            <option value="hp">HP del motor</option>
+            <option value="btu">BTU/h</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="valorLabel">Valor</label>
+          <input type="number" id="valor" value="32">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Factor de potencia</label>
+          <input type="number" id="fp" value="0.9" step="0.01">
+        </div>
+        <div class="field">
+          <label>Distancia (m)</label>
+          <input type="number" id="distancia" value="40">
+        </div>
+      </div>
+      <div class="field">
+        <label>Límite de caída de tensión (%)</label>
+        <input type="number" id="limite" value="3" step="0.1">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Resultados</h2>
+      <div class="results" id="resultados"></div>
+    </div>
+
+    <div class="card">
+      <h2>Comparar con N conductores por fase</h2>
+      <div class="field">
+        <label>¿Cuántos conductores por fase quieres usar?</label>
+        <select id="nCompare">
+          <option value="1">1 conductor</option>
+          <option value="2">2 en paralelo</option>
+          <option value="3">3 en paralelo</option>
+          <option value="4">4 en paralelo</option>
+          <option value="5">5 en paralelo</option>
+          <option value="6">6 en paralelo</option>
+        </select>
+      </div>
+      <div class="divider"></div>
+      <div class="results" id="compareResultados"></div>
+      <div class="foot" id="compareNota"></div>
+    </div>
+
+    <div class="card">
+      <h2>Condiciones de instalación (opcional)</h2>
+      <div class="row">
+        <div class="field">
+          <label>Temp. ambiente (°C)</label>
+          <select id="tempAmb">
+            <option value="30" selected>30°C (normal)</option>
+            <option value="40">40°C</option>
+            <option value="50">50°C</option>
+            <option value="60">60°C</option>
+            <option value="70">70°C</option>
+            <option value="80">80°C</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Conductores en el mismo tubo</label>
+          <select id="agrup">
+            <option value="1-3" selected>1 a 3 (normal)</option>
+            <option value="4-6">4 a 6</option>
+            <option value="7-9">7 a 9</option>
+            <option value="10-20">10 a 20</option>
+            <option value="21-30">21 a 30</option>
+            <option value="31-40">31 a 40</option>
+            <option value="41+">41 o más</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Calibre mínimo para paralelizar</label>
+          <select id="minParaleloGauge">
+            <option value="1/0 AWG" selected>1/0 AWG (NEC 310.10(H), estándar)</option>
+            <option value="4 AWG">4 AWG (personalizado)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Tipo de carga (breaker)</label>
+          <select id="tipoCarga">
+            <option value="continua" selected>Continua (motores, 3h+)</option>
+            <option value="no-continua">No continua</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Canalización (solo Cobre)</label>
+          <select id="canalizacion">
+            <option value="tuberia" selected>En tubería (PVC/EMT)</option>
+            <option value="aire">Al aire libre</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Tipo de aislamiento</label>
+          <select id="aislamiento">
+            <option value="60">60°C (TW)</option>
+            <option value="75">75°C (THW)</option>
+            <option value="90" selected>90°C (THHN)</option>
+          </select>
+        </div>
+      </div>
+      <div class="foot">Por defecto (30°C, 1-3 conductores, paralelo desde 1/0 AWG, carga continua, en tubería, 90°C THHN) no cambia nada del cálculo normal. "Al aire libre" usa la tabla NEC 310.17 (ampacidad mayor) — solo disponible para cobre, verificada; para aluminio no se aplica porque no hay tabla NEC confirmada. "Al aire libre" siempre asume 90°C sin importar el aislamiento elegido.</div>
+    </div>
+
+    <div class="foot" style="margin-top:-6px;">Todo el cálculo corre en tu navegador — sin conexión a servidor. Para tenerla como ícono: menú del navegador → "Agregar a pantalla de inicio" / "Instalar app".</div>
+  </div>
+
+<script>
+// th60/th75/th90 = ampacidad en tuberia segun aislamiento (NEC 310.16). th_aire = ampacidad 90C al aire libre (NEC 310.17, verificada, solo cobre)
+const COND = [
+  {g:'14 AWG', th60:15,  th75:20,  th90:25,  th_aire:35,  r:10.17},
+  {g:'12 AWG', th60:20,  th75:25,  th90:30,  th_aire:40,  r:6.398},
+  {g:'10 AWG', th60:30,  th75:35,  th90:40,  th_aire:55,  r:4.026},
+  {g:'8 AWG',  th60:40,  th75:50,  th90:55,  th_aire:80,  r:2.552},
+  {g:'6 AWG',  th60:55,  th75:65,  th90:75,  th_aire:105, r:1.611},
+  {g:'4 AWG',  th60:70,  th75:85,  th90:95,  th_aire:140, r:1.014},
+  {g:'2 AWG',  th60:95,  th75:115, th90:130, th_aire:190, r:0.636},
+  {g:'1/0 AWG',th60:125, th75:150, th90:170, th_aire:260, r:0.4},
+  {g:'2/0 AWG',th60:145, th75:175, th90:195, th_aire:300, r:0.318},
+  {g:'3/0 AWG',th60:165, th75:200, th90:225, th_aire:350, r:0.252},
+  {g:'4/0 AWG',th60:195, th75:230, th90:260, th_aire:405, r:0.2},
+  {g:'250 kcmil',th60:215, th75:255, th90:290, th_aire:455, r:0.171},
+  {g:'350 kcmil',th60:260, th75:310, th90:350, th_aire:570, r:0.128},
+  {g:'500 kcmil',th60:320, th75:380, th90:430, th_aire:700, r:0.089},
+];
+const COND_AL = [
+  {g:'12 AWG (Al)', th60:15,  th75:20,  th90:25,  r:10.45},
+  {g:'10 AWG (Al)', th60:25,  th75:30,  th90:35,  r:6.57},
+  {g:'8 AWG (Al)',  th60:30,  th75:40,  th90:45,  r:4.13},
+  {g:'6 AWG (Al)',  th60:40,  th75:50,  th90:60,  r:2.60},
+  {g:'4 AWG (Al)',  th60:55,  th75:65,  th90:75,  r:1.64},
+  {g:'2 AWG (Al)',  th60:75,  th75:90,  th90:100, r:1.03},
+  {g:'1/0 AWG (Al)',th60:100, th75:120, th90:135, r:0.65},
+  {g:'2/0 AWG (Al)',th60:115, th75:135, th90:150, r:0.51},
+  {g:'3/0 AWG (Al)',th60:130, th75:155, th90:175, r:0.41},
+  {g:'4/0 AWG (Al)',th60:150, th75:180, th90:205, r:0.33},
+  {g:'250 kcmil (Al)',th60:170, th75:205, th90:230, r:0.28},
+  {g:'350 kcmil (Al)',th60:210, th75:250, th90:280, r:0.20},
+  {g:'500 kcmil (Al)',th60:260, th75:310, th90:350, r:0.14},
+];
+// NEC 240.6(A) — ratings estandar reales de breaker/fusible (antes tenia valores IEC mezclados como 63/630/3200)
+const BREAKERS = [15,20,25,30,35,40,45,50,60,70,80,90,100,110,125,150,175,200,225,250,300,350,400,450,500,600,700,800,1000,1200,1600,2000,2500,3000,4000,5000,6000];
+
+
+// Tabla NEC 430.248 (monofasico) / 430.250 (trifasico): [HP, fase, voltaje motor, FLC real en A]
+// Solo incluye HP>=1 (los fraccionarios 1/6,1/4,1/3,1/2,3/4 no tienen match numerico directo)
+const MOTORES = [
+  [1.0,"Monofasico","115V",16.0],
+  [1.0,"Monofasico","208V",8.8],
+  [1.0,"Monofasico","230V",8.0],
+  [1.0,"Trifasico","208V",4.6],
+  [1.0,"Trifasico","230V",4.2],
+  [1.0,"Trifasico","460V",2.1],
+  [1.5,"Monofasico","115V",20.0],
+  [1.5,"Monofasico","208V",11.0],
+  [1.5,"Monofasico","230V",10.0],
+  [1.5,"Trifasico","208V",6.6],
+  [1.5,"Trifasico","230V",6.0],
+  [1.5,"Trifasico","460V",3.0],
+  [2.0,"Monofasico","115V",24.0],
+  [2.0,"Monofasico","208V",13.2],
+  [2.0,"Monofasico","230V",12.0],
+  [2.0,"Trifasico","208V",7.5],
+  [2.0,"Trifasico","230V",6.8],
+  [2.0,"Trifasico","460V",3.4],
+  [3.0,"Monofasico","115V",34.0],
+  [3.0,"Monofasico","208V",18.7],
+  [3.0,"Monofasico","230V",17.0],
+  [3.0,"Trifasico","208V",10.6],
+  [3.0,"Trifasico","230V",9.6],
+  [3.0,"Trifasico","460V",4.8],
+  [5.0,"Monofasico","115V",56.0],
+  [5.0,"Monofasico","208V",30.8],
+  [5.0,"Monofasico","230V",28.0],
+  [5.0,"Trifasico","208V",16.7],
+  [5.0,"Trifasico","230V",15.2],
+  [5.0,"Trifasico","460V",7.6],
+  [7.5,"Monofasico","115V",80.0],
+  [7.5,"Monofasico","208V",44.0],
+  [7.5,"Monofasico","230V",40.0],
+  [7.5,"Trifasico","208V",24.2],
+  [7.5,"Trifasico","230V",22.0],
+  [7.5,"Trifasico","460V",11.0],
+  [10.0,"Monofasico","115V",100.0],
+  [10.0,"Monofasico","208V",55.0],
+  [10.0,"Monofasico","230V",50.0],
+  [10.0,"Trifasico","208V",30.8],
+  [10.0,"Trifasico","230V",28.0],
+  [10.0,"Trifasico","460V",14.0],
+  [15.0,"Monofasico","115V",131.0],
+  [15.0,"Monofasico","208V",72.0],
+  [15.0,"Monofasico","230V",65.7],
+  [15.0,"Trifasico","208V",46.2],
+  [15.0,"Trifasico","230V",42.0],
+  [15.0,"Trifasico","460V",21.0],
+  [20.0,"Trifasico","208V",59.4],
+  [20.0,"Trifasico","230V",54.0],
+  [20.0,"Trifasico","460V",27.0],
+  [25.0,"Trifasico","208V",74.8],
+  [25.0,"Trifasico","230V",68.0],
+  [25.0,"Trifasico","460V",34.0],
+  [30.0,"Trifasico","208V",88.0],
+  [30.0,"Trifasico","230V",80.0],
+  [30.0,"Trifasico","460V",40.0],
+  [40.0,"Trifasico","208V",114.0],
+  [40.0,"Trifasico","230V",104.0],
+  [40.0,"Trifasico","460V",52.0],
+  [50.0,"Trifasico","208V",143.0],
+  [50.0,"Trifasico","230V",130.0],
+  [50.0,"Trifasico","460V",65.0],
+  [60.0,"Trifasico","208V",169.0],
+  [60.0,"Trifasico","230V",154.0],
+  [60.0,"Trifasico","460V",77.0],
+  [75.0,"Trifasico","208V",211.0],
+  [75.0,"Trifasico","230V",192.0],
+  [75.0,"Trifasico","460V",96.0],
+  [100.0,"Trifasico","208V",273.0],
+  [100.0,"Trifasico","230V",248.0],
+  [100.0,"Trifasico","460V",124.0],
+  [125.0,"Trifasico","208V",343.0],
+  [125.0,"Trifasico","230V",312.0],
+  [125.0,"Trifasico","460V",156.0],
+  [150.0,"Trifasico","208V",396.0],
+  [150.0,"Trifasico","230V",360.0],
+  [150.0,"Trifasico","460V",180.0],
+  [200.0,"Trifasico","208V",528.0],
+  [200.0,"Trifasico","230V",480.0],
+  [200.0,"Trifasico","460V",240.0],
+  [250.0,"Trifasico","460V",302.0],
+  [300.0,"Trifasico","460V",361.0],
+  [350.0,"Trifasico","460V",414.0],
+  [400.0,"Trifasico","460V",477.0],
+  [450.0,"Trifasico","460V",515.0]
+];
+const TRANSF = [5,10,15,25,37.5,50,75,112.5,150,225,250,300,500,630,750,1000,1250,1500,2000];
+
+// Factores de correccion NEC 310.15 (Tabla 310.15(B)(1) y 310.15(C)(1))
+const FACTOR_TEMP = {30:1, 40:0.91, 50:0.82, 60:0.71, 70:0.58, 80:0.41};
+const FACTOR_AGRUP = {'1-3':1, '4-6':0.8, '7-9':0.7, '10-20':0.5, '21-30':0.45, '31-40':0.4, '41+':0.35};
+
+function nextUp(list, value){
+  for (const v of list) if (v >= value) return v;
+  return null;
+}
+
+function dropForGauge(I, dist, r, tri){
+  return (tri ? Math.sqrt(3) : 2) * I * dist * r / 1000; // voltios, para 1 conductor
+}
+
+function voltajeMotor(V){
+  if (V === 120) return '115V';
+  if (V === 220 || V === 240) return '230V';
+  if (V === 440 || V === 480) return '460V';
+  if (V === 208) return '208V';
+  return null; // 380V no tiene equivalente NEMA directo
+}
+
+function buscarMotorFLC(hp, fase, V){
+  const vMotor = voltajeMotor(V);
+  if (!vMotor) return null;
+  const fila = MOTORES.find(m => m[0] === hp && m[1] === fase && m[2] === vMotor);
+  return fila ? fila[3] : null;
+}
+
+function ampacidadBase(c, aire, aislamiento){
+  // "Al aire libre" (NEC 310.17) solo existe verificado para cobre a 90C; si no aplica, usar tuberia segun aislamiento elegido
+  if (aire && c.th_aire) return c.th_aire;
+  if (aislamiento === 60) return c.th60;
+  if (aislamiento === 75) return c.th75;
+  return c.th90;
+}
+
+function pickGauge(arr, minParaleloIdx, I, dist, r_limit_V, tri, maxParalelo, factorDerateo, aire, aislamiento){
+  // NEC 310.10(H): no se permite paralelizar conductores menores a 1/0 AWG
+  for (let i=0;i<arr.length;i++){
+    const c = arr[i];
+    const thDerateado = ampacidadBase(c, aire, aislamiento) * factorDerateo;
+    if (I <= 0 || I > thDerateado) continue;
+    const limiteAqui = Math.min(maxParalelo, i < minParaleloIdx ? 1 : maxParalelo);
+    const dropAt1 = dropForGauge(I, dist, c.r, tri);
+    const paralelo = Math.max(1, Math.ceil(dropAt1 / r_limit_V));
+    if (paralelo <= limiteAqui) return {idx:i, gauge:c.g, r:c.r, paralelo};
+  }
+  return null;
+}
+
+// Calibre necesario si el usuario ELIGE de antemano cuantos conductores por fase (N) usar.
+// NEC 310.10(H): con N>1 el calibre minimo permitido es 1/0 AWG.
+function pickGaugeForN(arr, minParaleloIdx, I, dist, limiteV, tri, N, factorDerateo, aire, aislamiento){
+  const minIdx = N > 1 ? minParaleloIdx : 0;
+  for (let i=minIdx; i<arr.length; i++){
+    const c = arr[i];
+    const porConductor = I / N;
+    if (porConductor > ampacidadBase(c, aire, aislamiento) * factorDerateo) continue; // no alcanza la ampacidad por conductor
+    const dropTotal = dropForGauge(I, dist, c.r, tri) / N;
+    if (dropTotal <= limiteV) return {gauge:c.g, r:c.r, dropV:dropTotal, porConductor};
+  }
+  return null;
+}
+
+let ultimo = null;
+
+function fmt(n, d=2){ return isFinite(n) ? n.toFixed(d) : '-'; }
+
+function calcular(){
+  const sistema = document.getElementById('sistema').value;
+  const tri = sistema === 'Trifasico';
+  const V = parseFloat(document.getElementById('voltaje').value) || 0;
+  const tipo = document.getElementById('tipo').value;
+  const valor = parseFloat(document.getElementById('valor').value) || 0;
+  const fp = parseFloat(document.getElementById('fp').value) || 1;
+  const dist = parseFloat(document.getElementById('distancia').value) || 0;
+  const limite = parseFloat(document.getElementById('limite').value) || 3;
+  const tempAmb = parseInt(document.getElementById('tempAmb').value, 10);
+  const agrup = document.getElementById('agrup').value;
+  const factorDerateo = (FACTOR_TEMP[tempAmb] ?? 1) * (FACTOR_AGRUP[agrup] ?? 1);
+  const tipoCarga = document.getElementById('tipoCarga').value;
+  const factorCarga = tipoCarga === 'no-continua' ? 1.0 : 1.25;
+  const aire = document.getElementById('canalizacion').value === 'aire';
+  const aislamiento = parseInt(document.getElementById('aislamiento').value, 10);
+  const material = document.getElementById('material').value;
+  const arr = material === 'Aluminio' ? COND_AL : COND;
+  const minParaleloGauge = document.getElementById('minParaleloGauge').value; // '1/0 AWG' o '4 AWG'
+  const minParaleloIdx = arr.findIndex(c => c.g.replace(' (Al)','') === minParaleloGauge);
+
+  // 1) Corriente segun el tipo de dato ingresado
+  let I = 0, W = 0;
+  let motorFLC = null; // si hay HP y hay match exacto en la tabla NEC 430.248/250
+  if (tipo === 'corriente') I = valor;
+  else {
+    if (tipo === 'w') W = valor;
+    else if (tipo === 'kw') W = valor*1000;
+    else if (tipo === 'kva') W = valor*1000*fp;
+    else if (tipo === 'hp') W = valor*745.7;
+    else if (tipo === 'btu') W = valor*0.29307;
+    I = V>0 ? (tri ? W/(Math.sqrt(3)*V*fp) : W/(V*fp)) : 0;
+    if (tipo === 'hp'){
+      motorFLC = buscarMotorFLC(valor, sistema, V);
+      if (motorFLC !== null) I = motorFLC; // usar la corriente real de tabla, no la calculada
+    }
+  }
+
+  // 2) Breaker (siguiente estandar >= 1.25 x I)
+  const breaker = I>0 ? nextUp(BREAKERS, I*factorCarga) : null;
+
+  // 2b) Si es motor con match en tabla: breaker motor (NEC 430.52, 250%) y corriente de diseño del conductor (NEC 430.22, 125%)
+  const breakerMotor = motorFLC !== null ? nextUp(BREAKERS, motorFLC*2.5) : null;
+  const corrienteDisenoMotor = motorFLC !== null ? Math.round(motorFLC*1.25*100)/100 : null;
+
+  // 3) Calibre con maximo 2 conductores en paralelo
+  const limiteV = V * limite/100;
+  let sel = I>0 ? pickGauge(arr, minParaleloIdx, I, dist, limiteV, tri, 2, factorDerateo, aire, aislamiento) : null;
+  let gaugeLabel, paralelo, r_used;
+  if (I>0 && !sel){
+    // ninguno de la tabla alcanza con <=2: forzar el calibre mas grueso con los paralelos que hagan falta
+    const c = arr[arr.length-1];
+    const dropAt1 = dropForGauge(I, dist, c.r, tri);
+    paralelo = Math.max(Math.ceil(I/(ampacidadBase(c, aire, aislamiento)*factorDerateo)), Math.ceil(dropAt1/limiteV));
+    gaugeLabel = c.g; r_used = c.r;
+  } else if (sel){
+    gaugeLabel = sel.gauge; paralelo = sel.paralelo; r_used = sel.r;
+  } else {
+    gaugeLabel = '-'; paralelo = 0; r_used = 0;
+  }
+  const dropV = I>0 ? dropForGauge(I, dist, r_used, tri)/paralelo : 0;
+  const dropPct = V>0 ? dropV/V*100 : 0;
+  const estadoOk = dropPct <= limite;
+
+  // 4) Calibre en conductor unico (sin paralelo)
+  let single = I>0 ? pickGauge(arr, minParaleloIdx, I, dist, limiteV, tri, 1, factorDerateo, aire, aislamiento) : null;
+  const singleLabel = I<=0 ? '-' : (single ? single.gauge : 'Requiere paralelo');
+
+  // 5) Potencias
+  const kva = W>0 ? W/1000/fp : (tri ? I*V*Math.sqrt(3)/1000 : I*V/1000);
+  const kw = kva*fp;
+  const wCalc = kw*1000;
+  const btu = kw*3412.14;
+  const hp = wCalc/745.7;
+
+  // 6) Transformador
+  const transf = kva>0 ? nextUp(TRANSF, kva) : null;
+
+  const items = [
+    ['Corriente (A)', fmt(I,2)],
+    ['Breaker (A)', breaker ?? '-'],
+    ['Calibre cable', gaugeLabel],
+    ['Conductores en paralelo', paralelo || '-'],
+    ['Calibre (conductor único)', singleLabel],
+    ['Caída de tensión (V)', fmt(dropV,2)],
+    ['Caída de tensión (%)', fmt(dropPct,2)+' %', true, estadoOk],
+    ['Potencia (kVA)', fmt(kva,2)],
+    ['Potencia (kW)', fmt(kw,2)],
+    ['Potencia (W)', fmt(wCalc,0)],
+    ['BTU/h equivalente', fmt(btu,0)],
+    ['HP equivalente', fmt(hp,2)],
+    ['Transformador (kVA)', transf ?? '-'],
+  ];
+  if (motorFLC !== null){
+    items.push(['Breaker motor (NEC 430.52, 250%)', breakerMotor ?? '-']);
+    items.push(['Corriente diseño conductor (NEC 430.22, 125% FLC)', fmt(corrienteDisenoMotor,2)]);
+  }
+
+  const box = document.getElementById('resultados');
+  box.innerHTML = items.map(([lbl,val,isEstado,ok])=>{
+    const cls = isEstado ? (ok?'ok':'bad') : '';
+    const extra = isEstado ? `<span class="estado ${cls}">${val} ${ok?'✓':'⚠'}</span>` : `<span class="val">${val}</span>`;
+    return `<div class="r-item"><span class="lbl">${lbl}</span>${extra}</div>`;
+  }).join('');
+
+  ultimo = {I, dist, tri, V, limite, factorDerateo, arr, minParaleloIdx, aire, aislamiento};
+  compararN();
+}
+
+function compararN(){
+  if (!ultimo){ return; }
+  const { I, dist, tri, V, limite, arr, minParaleloIdx, aire, aislamiento } = ultimo;
+  const factorDerateo = ultimo.factorDerateo;
+  const N = parseInt(document.getElementById('nCompare').value, 10);
+  const box = document.getElementById('compareResultados');
+  const nota = document.getElementById('compareNota');
+
+  if (I <= 0){
+    box.innerHTML = '';
+    nota.textContent = 'Ingresa un dato en "Datos de entrada" para comparar.';
+    return;
+  }
+
+  const limiteV = V * limite/100;
+  const res = pickGaugeForN(arr, minParaleloIdx, I, dist, limiteV, tri, N, factorDerateo);
+
+  if (!res){
+    box.innerHTML = `<div class="r-item wide"><span class="lbl">Resultado</span><span class="estado bad">No alcanza con ${N} conductor(es) ⚠</span></div>`;
+    nota.textContent = `Ni el calibre más grueso (${arr[arr.length-1].g}) cumple con ese número de conductores — necesitas más conductores en paralelo.`;
+    return;
+  }
+
+  const dropPct = V>0 ? res.dropV/V*100 : 0;
+  const ok = dropPct <= limite;
+  const ampacidadTotal = N * ampacidadBase(arr.find(c=>c.g===res.gauge), aire, aislamiento);
+
+  const items = [
+    ['Calibre necesario (c/u)', res.gauge],
+    ['Corriente por conductor (A)', fmt(res.porConductor,2)],
+    ['Caída de tensión (V)', fmt(res.dropV,2)],
+    ['Caída de tensión (%)', fmt(dropPct,2)+' %', true, ok],
+    ['Ampacidad total disponible (A)', fmt(ampacidadTotal,0)],
+  ];
+  box.innerHTML = items.map(([lbl,val,isEstado,okk])=>{
+    const cls = isEstado ? (okk?'ok':'bad') : '';
+    const extra = isEstado ? `<span class="estado ${cls}">${val} ${okk?'✓':'⚠'}</span>` : `<span class="val">${val}</span>`;
+    return `<div class="r-item"><span class="lbl">${lbl}</span>${extra}</div>`;
+  }).join('');
+
+  if (N > 1 && N < 2){ /* noop */ }
+  nota.textContent = N > 1
+    ? `Con ${N} conductores de ${res.gauge} por fase (permitido porque es 1/0 AWG o mayor, según NEC 310.10(H)).`
+    : `Con 1 solo conductor de ${res.gauge} por fase.`;
+}
+
+document.getElementById('nCompare').addEventListener('change', compararN);
+
+document.getElementById('tipo').addEventListener('change', e=>{
+  const labels = {corriente:'Corriente (A)', w:'Potencia (W)', kw:'Potencia (kW)', kva:'Potencia (kVA)', hp:'HP del motor', btu:'BTU/h'};
+  document.getElementById('valorLabel').textContent = labels[e.target.value];
+});
+
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',calcular));
+calcular();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
