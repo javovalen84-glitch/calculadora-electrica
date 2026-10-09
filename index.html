@@ -15,7 +15,7 @@
   :root{
     --bg:#121212; --panel:#514e48; --panel2:#f5f3ec; --line:#e2ded4;
     --copper:#3b82f6; --copper-bright:#3b82f6; --ok:#1e7e34; --bad:#e2574c;
-    --text:#3b82f6; --muted:#2b2b2b;
+    --text:#3b82f6; --muted:#000000;
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
@@ -27,6 +27,11 @@
     min-height:100%;
   }
   .top{
+   label, .label, .muted, small, span {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+} 
     padding:22px clamp(16px,4vw,40px) 16px; border-bottom:1px solid var(--line);
     background:linear-gradient(180deg,#141a20,#101418);
   }
