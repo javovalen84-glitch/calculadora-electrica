@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calculadora-electrica-jv-v9';
+const CACHE_NAME = 'calculadora-electrica-jv-v10';
 const ARCHIVOS = [
   './',
   './index.html',
