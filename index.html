@@ -13,12 +13,18 @@
 <title>Calculadora Eléctrica PRO JV</title>
 <style>
   :root{
-:root{
---bg:#3a3d42; --panel:#464a50; --panel2:#52565d; --line:#6a6f76;
---copper:#e42a2d; --copper-bright:#ff7b7b; --ok:#8be8ab; --bad:#ffb3ac;
---text:#f4f5f5; --muted:#a0a6ab;
+    --bg:#101418; --panel:#171d24; --panel2:#1d242c; --line:#2a323c;
+    --copper:#c9793f; --copper-bright:#e29457; --ok:#4caf6d; --bad:#e2574c;
+    --text:#e9edf1; --muted:#8b96a3;
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100%;
   }
   *{box-sizing:border-box;}
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
