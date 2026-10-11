@@ -40,8 +40,10 @@
   @media (max-width:520px){ .row{grid-template-columns:1fr;} }
   label{display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px;}
   select,input{
-    width:100%; background:var(--panel2); border:1px solid var(--line); color: blue;
-    padding:11px 10px; border-radius:7px; font-size:1rem; font-family:inherit;
+    select, input {
+  width: 100%; background: var(--panel2); border: 1px solid var(--line); color: blue !important;
+  padding: 11px 10px; border-radius: 7px; font-size: 1rem; font-family: inherit;
+}
   }
   select:focus,input:focus{outline:2px solid var(--copper); outline-offset:1px;}
   .field{margin-bottom:12px;}
