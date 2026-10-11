@@ -38,8 +38,8 @@
   @media (max-width:520px){ .row{grid-template-columns:1fr;} }
   label{display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px;}
   
-  /* Estilos unificados y limpios para inputs y selects con color de texto garantizado */
-  select, input {
+  /* Inputs generales */
+  input {
     width: 100%; 
     background: var(--panel2); 
     border: 1px solid var(--line); 
@@ -49,10 +49,23 @@
     font-size: 1rem; 
     font-family: inherit;
   }
+  
+  /* Selects con el color AZUL que solicitaste */
+  select {
+    width: 100%; 
+    background: var(--panel2); 
+    border: 1px solid var(--line); 
+    color: blue !important;
+    padding: 11px 10px; 
+    border-radius: 7px; 
+    font-size: 1rem; 
+    font-family: inherit;
+  }
   select option {
     background: var(--panel2);
-    color: var(--text);
+    color: blue;
   }
+
   select:focus, input:focus { outline: 2px solid var(--copper); outline-offset: 1px; }
   
   .field{margin-bottom:12px;}
@@ -80,18 +93,19 @@
 
   <div class="wrap">
     <div class="card">
-      <h2>Datos de entrada</h2>  
+      <!-- Título con el color ROJO que pediste -->
+      <h2 style="color: red !important;">Datos de entrada</h2>  
       <div class="row">
         <div class="field">
           <label>Sistema</label>
-          <select id="sistema">
+          <select id="sistema" style="color: blue !important;">
             <option value="Monofasico">Monofásico</option>
             <option value="Trifasico">Trifásico</option>
           </select>
         </div> 
         <div class="field">
           <label>Material del conductor</label>
-          <select id="material">
+          <select id="material" style="color: blue !important;">
             <option value="Cobre">Cobre</option>
             <option value="Aluminio">Aluminio</option>
           </select>
@@ -106,7 +120,7 @@
       <div class="row">
         <div class="field">
           <label>Tipo de dato que voy a ingresar</label>
-          <select id="tipo">
+          <select id="tipo" style="color: blue !important;">
             <option value="corriente">Corriente (A)</option>
             <option value="w">Potencia (W)</option>
             <option value="kw">Potencia (kW)</option>
@@ -145,7 +159,7 @@
       <h2>Comparar con N conductores por fase</h2>
       <div class="field">
         <label>¿Cuántos conductores por fase quieres usar?</label>
-        <select id="nCompare">
+        <select id="nCompare" style="color: blue !important;">
           <option value="1">1 conductor</option>
           <option value="2">2 en paralelo</option>
           <option value="3">3 en paralelo</option>
@@ -164,7 +178,7 @@
       <div class="row">
         <div class="field">
           <label>Temp. ambiente (°C)</label>
-          <select id="tempAmb">
+          <select id="tempAmb" style="color: blue !important;">
             <option value="30" selected>30°C (normal)</option>
             <option value="40">40°C</option>
             <option value="50">50°C</option>
@@ -175,7 +189,7 @@
         </div>
         <div class="field">
           <label>Conductores en el mismo tubo</label>
-          <select id="agrup">
+          <select id="agrup" style="color: blue !important;">
             <option value="1-3" selected>1 a 3 (normal)</option>
             <option value="4-6">4 a 6</option>
             <option value="7-9">7 a 9</option>
@@ -189,7 +203,7 @@
       <div class="row">
         <div class="field">
           <label>Calibre mínimo para paralelizar</label>
-          <select id="minParaleloGauge">
+          <select id="minParaleloGauge" style="color: blue !important;">
             <option value="1/0 AWG" selected>1/0 AWG (NEC 310.10(H), estándar)</option>
             <option value="4 AWG">4 AWG (personalizado)</option>
           </select>
@@ -198,14 +212,14 @@
       <div class="row">
         <div class="field">
           <label>Tipo de carga (breaker)</label>
-          <select id="tipoCarga">
+          <select id="tipoCarga" style="color: blue !important;">
             <option value="continua" selected>Continua (motores, 3h+)</option>
             <option value="no-continua">No continua</option>
           </select>
         </div>
         <div class="field">
           <label>Canalización (solo Cobre)</label>
-          <select id="canalizacion">
+          <select id="canalizacion" style="color: blue !important;">
             <option value="tuberia" selected>En tubería (PVC/EMT)</option>
             <option value="aire">Al aire libre</option>
           </select>
@@ -214,7 +228,7 @@
       <div class="row">
         <div class="field">
           <label>Tipo de aislamiento</label>
-          <select id="aislamiento">
+          <select id="aislamiento" style="color: blue !important;">
             <option value="60">60°C (TW)</option>
             <option value="75">75°C (THW)</option>
             <option value="90" selected>90°C (THHN)</option>
@@ -459,8 +473,7 @@ function calcular(){
 
 function compararN(){
   if (!ultimo){ return; }
-  const { I, dist, tri, V, limite, arr, minParaleloIdx, aire, aislamiento } = ultimo;
-  const factorDerateo = ultimo.factorDerateo;
+  const { I, dist, tri, V, limite, arr, minParaleloIdx, aire, aislamiento, factorDerateo } = ultimo;
   const N = parseInt(document.getElementById('nCompare').value, 10);
   const box = document.getElementById('compareResultados');
   const nota = document.getElementById('compareNota');
@@ -472,7 +485,6 @@ function compararN(){
   }
 
   const limiteV = V * limite/100;
-  // Corregido: pasados todos los argumentos requeridos incluyendo aire y aislamiento
   const res = pickGaugeForN(arr, minParaleloIdx, I, dist, limiteV, tri, N, factorDerateo, aire, aislamiento);
 
   if (!res){
